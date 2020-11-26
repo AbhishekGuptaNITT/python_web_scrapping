@@ -1,7 +1,7 @@
 from django.shortcuts import render, HttpResponse
 import requests
 from bs4 import BeautifulSoup
-
+from fpdf import FPDF
 
 # Create your views here.
 def index(request):
@@ -62,7 +62,7 @@ def product(request):
         sprice = soup.find(class_='lfloat product-price') #price
         sreviews = soup.find(class_='product-rating-count')
 
-        
+    
     context = {
         'price' : price,
         'name' : name,
@@ -79,6 +79,22 @@ def product(request):
         'sname':sname.text,
         'sprice':sprice.text,
         'sreviews':sreviews.text,
-
     }
+    global mycontext
+    mycontext = context
     return render(request, 'product.html', context)
+
+def pdfreport(request):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial",size=15)
+    pdf.cell(200,10,txt='Shopping Guide Report',ln=1,align='C')
+    pdf.cell(200,10,txt="Amazon + Flipkart + Snapdeal",ln=1,align='C')
+    pdf.cell(200,10,txt="Flipkart Review {}".format(mycontext['freviews']),ln=1,align='L')
+    pdf.cell(200,10,txt="Amazon Review {}".format(mycontext['peopleRated']),ln=1,align='L')
+    pdf.cell(200,10,txt="Snapdeal Review {}".format(mycontext['sreviews']),ln=1,align='L')
+    pdf.output("pdfreport.pdf")
+    return HttpResponse('''
+    <h2>PDF DOWNLOADED LOCALLY!</h2>
+    <h4>You can close the window</h2>
+    ''')
