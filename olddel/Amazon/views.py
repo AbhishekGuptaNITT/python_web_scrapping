@@ -3,15 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 from fpdf import FPDF
 
-
 # Create your views here.
-
-def AmazonList(request):
-    return render(request, 'AmazonList.html')
-
-def FlipkartList(request):
-    return render(request, 'FlipkartList.html')
-
 def index(request):
     return render(request, 'index.html')
 
@@ -35,8 +27,8 @@ def product(request):
         reviews = soup.find(class_='a-icon a-icon-star-small a-star-small-4 aok-align-bottom').text #review points
         people = soup.find(class_='a-row a-size-small') #people
         peopleRated = people.find(class_='a-size-base').text #peopleRated
-        
         # //////////////////////////////////
+
         url = 'https://www.flipkart.com/search?q='
         query = request.POST.get('searchbox')
         query = query.replace(' ','+')
@@ -70,7 +62,7 @@ def product(request):
         sprice = soup.find(class_='lfloat product-price') #price
         sreviews = soup.find(class_='product-rating-count')
 
-        
+    
     context = {
         'price' : price,
         'name' : name,
@@ -87,31 +79,20 @@ def product(request):
         'sname':sname.text,
         'sprice':sprice.text,
         'sreviews':sreviews.text,
-
     }
     global mycontext
     mycontext = context
     return render(request, 'product.html', context)
 
-
 def pdfreport(request):
-    aprice = mycontext['price']
-    fprice = mycontext['fprice'][1:]
-    sprice = mycontext['sprice'][1:]
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial",size=15)
     pdf.cell(200,10,txt='Shopping Guide Report',ln=1,align='C')
     pdf.cell(200,10,txt="Amazon + Flipkart + Snapdeal",ln=1,align='C')
-    pdf.cell(200,10,txt="Flipkart Reviews {}".format(mycontext['peopleRated']),ln=1,align='L')
-    pdf.cell(200,10,txt="Amazon Review {}".format(mycontext['fpeople_rated']),ln=1,align='L')
+    pdf.cell(200,10,txt="Flipkart Review {}".format(mycontext['freviews']),ln=1,align='L')
+    pdf.cell(200,10,txt="Amazon Review {}".format(mycontext['peopleRated']),ln=1,align='L')
     pdf.cell(200,10,txt="Snapdeal Review {}".format(mycontext['sreviews']),ln=1,align='L')
-    pdf.cell(200,10,txt="PRICE",ln=1,align='C')
-    pdf.cell(200,10,txt="Amazon Price {}".format(aprice),ln=1,align='L')
-    pdf.cell(200,10,txt="Flipkart Price {}".format(fprice),ln=1,align='L')
-    pdf.cell(200,10,txt="Snapdeal Price {}".format(sprice),ln=1,align='L')
-    # pdf.cell(200,10,txt="Average"),ln=1,align='C')
-    # pdf.cell(200,10,txt="Average Reviews: {}".format(),ln=1,align='L')
     pdf.output("pdfreport.pdf")
     return HttpResponse('''
     <h2>PDF DOWNLOADED LOCALLY!</h2>
